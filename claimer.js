@@ -27,11 +27,14 @@ function process() {
 	var rc = client.rc.getRCMana(config.account).then(result => {
 		log('Current Mana: ' + result.current_mana + ', Max RC: ' + result.max_mana + ', RC %: ' + result.percentage); 
 
-		if(result.percentage > config.min_rc_pct / 100)
+		if(result.percentage / 100 > config.min_rc_pct / 100) {
 			claim();
-		else
+		} else
 			setTimeout(process, 10 * 60 * 1000);
-	}, e => console.log(e));
+	}, e => {
+		console.log(e);
+		setTimeout(process, 1000);
+	});
 }
 
 function claim() {
@@ -41,7 +44,10 @@ function claim() {
 		DACTS++;
 		log('Account claimed! Total: ' + DACTS);
 		setTimeout(process, 1000);
-	}, e => console.log(e));
+	}, e => {
+		console.log(e);
+		setTimeout(process, 1000);
+	});
 }
 
 function log(msg) { console.log(new Date().toString() + ' - ' + msg); }
