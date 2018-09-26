@@ -1,4 +1,4 @@
-var dsteem = require('dsteem');
+var dsteem = require('dsteem-hf20');
 var config = require('./config');
 
 // Count of Discounted Account Creation Tokens (DACTs) available in the account.
@@ -24,12 +24,10 @@ function start() {
 }
 
 function process() {
-	client.call('rc_api', 'find_rc_accounts', { accounts: [config.account] }).then(function (result) { 
-		var max = result.rc_accounts[0].max_rc;
-		var current = result.rc_accounts[0].rc_manabar.current_mana;
-		log('Current Mana: ' + current + ', Max RC: ' + max + ', RC %: ' + (current / max * 100).toFixed(2)); 
+	var rc = client.rc.getRCMana(config.account).then(result => {
+		log('Current Mana: ' + result.current_mana + ', Max RC: ' + result.max_mana + ', RC %: ' + result.percentage); 
 
-		if(current / max > config.min_rc_pct / 100)
+		if(result.percentage > config.min_rc_pct / 100)
 			claim();
 		else
 			setTimeout(process, 10 * 60 * 1000);
@@ -37,7 +35,7 @@ function process() {
 }
 
 function claim() {
-	var op = ['claim_account', { creator: config.account, fee: '0.000 TESTS', extensions: [] }];
+	var op = ['claim_account', { creator: config.account, fee: '0.000 STEEM', extensions: [] }];
 
 	client.broadcast.sendOperations([op], dsteem.PrivateKey.fromString(config.active_key)).then(r => {
 		DACTS++;
