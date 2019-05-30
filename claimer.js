@@ -8,7 +8,7 @@ var client;
 start();
 
 function start() {
-	var options = {};
+	var options = { timeout: 3000 };
 
 	if(config.chain_id)
 		options.chainId = config.chain_id;
@@ -28,25 +28,29 @@ function process() {
 		log('Current Mana: ' + result.current_mana + ', Max RC: ' + result.max_mana + ', RC %: ' + result.percentage); 
 
 		if(result.percentage / 100 > config.min_rc_pct / 100) {
-			claim();
+			claim(true);
 		} else
 			setTimeout(process, 10 * 60 * 1000);
 	}, e => {
 		console.log(e);
-		setTimeout(process, 1000);
+		setTimeout(process, 100);
 	});
 }
 
-function claim() {
+function claim(repeat) {
 	var op = ['claim_account', { creator: config.account, fee: '0.000 STEEM', extensions: [] }];
 
 	client.broadcast.sendOperations([op], dsteem.PrivateKey.fromString(config.active_key)).then(r => {
 		DACTS++;
 		log('Account claimed! Total: ' + DACTS);
-		setTimeout(process, 1000);
+		
+		if(repeat)
+			setTimeout(process, 100);
 	}, e => {
-		console.log(e);
-		setTimeout(process, 1000);
+		console.log("Error");
+		
+		if(repeat)
+			setTimeout(process, 100);
 	});
 }
 
