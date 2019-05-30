@@ -16,41 +16,45 @@ function start() {
 	client = new dsteem.Client(config.rpc_node, options);
 	log('Connected to ' + config.rpc_node);
 
-	client.database.getAccounts([config.account]).then(function (result) { 
-		log('Account has ' + result[0].pending_claimed_accounts + ' account creation tokens!'); 
-		DACTS = result[0].pending_claimed_accounts;
-		process();
+	client.database.getAccounts(config.accounts.map(a => a.name)).then(function (result) { 
+		for(var i = 0; i < result.length; i++) {
+			var account = config.accounts.find(a => a.name == result[i].name);
+
+			log('Account @' + account.name + ' has ' + result[i].pending_claimed_accounts + ' account creation tokens!'); 
+			account.DACTS = result[i].pending_claimed_accounts;
+			process(account);
+		}
 	});
 }
 
-function process() {
-	var rc = client.rc.getRCMana(config.account).then(result => {
-		log('Current Mana: ' + result.current_mana + ', Max RC: ' + result.max_mana + ', RC %: ' + result.percentage); 
+function process(account) {
+	var rc = client.rc.getRCMana(account.name).then(result => {
+		log('@' + account.name + ' - RC %: ' + result.percentage); 
 
 		if(result.percentage / 100 > config.min_rc_pct / 100) {
-			claim(true);
+			claim(account, true);
 		} else
-			setTimeout(process, 10 * 60 * 1000);
+			setTimeout(() => process(account), 10 * 60 * 1000);
 	}, e => {
 		console.log(e);
-		setTimeout(process, 100);
+		setTimeout(() => process(account), 100);
 	});
 }
 
-function claim(repeat) {
-	var op = ['claim_account', { creator: config.account, fee: '0.000 STEEM', extensions: [] }];
+function claim(account, repeat) {
+	var op = ['claim_account', { creator: account.name, fee: '0.000 STEEM', extensions: [] }];
 
-	client.broadcast.sendOperations([op], dsteem.PrivateKey.fromString(config.active_key)).then(r => {
-		DACTS++;
-		log('Account claimed! Total: ' + DACTS);
+	client.broadcast.sendOperations([op], dsteem.PrivateKey.fromString(account.active_key)).then(r => {
+		account.DACTS++;
+		log('Account claimed from @' + account.name + '! Total: ' + account.DACTS);
 		
 		if(repeat)
-			setTimeout(process, 100);
+			setTimeout(() => process(account), 100);
 	}, e => {
 		console.log("Error");
 		
 		if(repeat)
-			setTimeout(process, 100);
+			setTimeout(() => process(account), 100);
 	});
 }
 
