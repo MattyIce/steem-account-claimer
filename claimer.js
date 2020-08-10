@@ -1,4 +1,4 @@
-var dsteem = require('dsteem-hf20');
+var dsteem = require('@hiveio/dhive');
 var config = require('./config');
 
 // Count of Discounted Account Creation Tokens (DACTs) available in the account.
@@ -29,7 +29,7 @@ function start() {
 
 function process(account) {
 	var rc = client.rc.getRCMana(account.name).then(result => {
-		log('@' + account.name + ' - RC %: ' + result.percentage); 
+		log('@' + account.name + ' - RC %: ' + (result.percentage / 100).toFixed(2)); 
 
 		if(result.percentage / 100 > config.min_rc_pct / 100) {
 			claim(account, true);
@@ -52,6 +52,7 @@ function claim(account, repeat) {
 			setTimeout(() => process(account), 100);
 	}, e => {
 		console.log("Error");
+		console.log(e);
 		
 		if(repeat)
 			setTimeout(() => process(account), 100);
