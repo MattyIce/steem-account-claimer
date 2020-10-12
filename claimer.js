@@ -31,7 +31,7 @@ function process(account) {
 	var rc = client.rc.getRCMana(account.name).then(result => {
 		log('@' + account.name + ' - RC %: ' + (result.percentage / 100).toFixed(2)); 
 
-		if(result.percentage / 100 > config.min_rc_pct / 100) {
+		if(result.percentage / 100 > config.min_rc_pct) {
 			claim(account, true);
 		} else
 			setTimeout(() => process(account), 10 * 60 * 1000);
