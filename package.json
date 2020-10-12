@@ -9,7 +9,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@hiveio/dhive": "^0.14.1",
-    "dsteem": "^0.10.0"
+    "@hiveio/dhive": "^0.14.1"
   }
 }
